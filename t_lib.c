@@ -180,6 +180,9 @@ void sem_destroy(sem_t **s){
   while ((*s)->q != NULL){
     tcb *tmp = (*s)->q;
     (*s)->q = (*s)->q->next;
+    free(tmp->thread_context->uc_stack.ss_sp);
+    free(tmp->thread_context);
+    free(tmp);
   }
   // free the semaphore itself
   free(*s);
@@ -225,8 +228,11 @@ void mbox_withdraw(mbox *mb, char *msg, int *len){
     len = tmp->len;
   }
   strcpy(msg, tmp->message);
+  free(tmp->message);
+  free(tmp);
 }
 
 void mbox_destroy(mbox **mb){
-
+  sem_destroy(&(*mb)->mbox_sem);
+  free(*mb);
 }
