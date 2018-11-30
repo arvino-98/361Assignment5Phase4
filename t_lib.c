@@ -198,6 +198,7 @@ int mbox_create(mbox **mb){
 }
 
 void mbox_deposit(mbox *mb, char *msg, int len){
+  sem_wait(mb->mbox_sem);
   messageNode *msgNode = malloc(sizeof(messageNode));
   msgNode->message = malloc(sizeof(char) * len);
   strcpy(msgNode->message, msg);
@@ -216,9 +217,11 @@ void mbox_deposit(mbox *mb, char *msg, int len){
     tmp->next = msgNode;
     msgNode->next = NULL;
   }
+  sem_signal(mb->mbox_sem);
 }
 
 void mbox_withdraw(mbox *mb, char *msg, int *len){
+  sem_wait(mb->mbox_sem);
   messageNode *tmp = mb->msg;
   mb->msg = mb->msg->next;
   if (tmp == NULL){
@@ -230,6 +233,7 @@ void mbox_withdraw(mbox *mb, char *msg, int *len){
   strcpy(msg, tmp->message);
   free(tmp->message);
   free(tmp);
+  sem_signal(mb->mbox_sem);
 }
 
 void mbox_destroy(mbox **mb){
