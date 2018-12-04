@@ -1,60 +1,55 @@
 /*
- * Test Program #5 - Send/Receive
+ * Test Program #6 - Mailbox
  */
 
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
 #include "ud_thread.h"
 
-void sender(int thr_id)
+mbox *mb;
+char *msg[2] = {"hello world...", "bye, bye"};
+
+void producer(int id)
 {
-   int i, j;
-   char *test_message = "Test Message";
+  int i;
+  char mymsg[30];
 
-   printf("Message is: %s, length: %d\n", test_message, strlen(test_message));
+  for (i = 0; i < 2; i++) {
+    sprintf(mymsg, "%s - tid %d", msg[i], id);
+    printf("Producer (%d): [%s] [length=%d]\n", id, mymsg, strlen(mymsg));
+    mbox_deposit(mb, mymsg, strlen(mymsg));
+  }
 
-   for (i = j = 0; i < 3; i++, j++) {
-
-      printf("[Pitch] - This is thread %d [%d]...\n", thr_id, j);
-      send(2, test_message, strlen(test_message));
-   }
-
-   printf("Thread %d is done...\n", thr_id);
-   t_terminate();
+  t_terminate();
 }
 
-void catcher(int thr_id)
+void consumer(int id)
 {
-   int i, j;
-   int snd_id;
-   int len;
-   char buffer[1024];
+  int i;
+  int len;
+  char mesg[1024];
 
-   snd_id = 1;
-   for (i = j = 0; i < 3; i++, j++) {
-      printf("[Catch] - This is thread %d [%d]...\n", thr_id, j);
-      receive(&snd_id, buffer, &len);
+  for (i = 0; i < 4; i++) {
+    mbox_withdraw(mb, mesg, &len);
+    printf("Message from mailbox: [%s]\n", mesg);
+  }
 
-      if(len) {
-         printf("Catcher got [%s] from thread %d\n", buffer, snd_id);
-      }
-   }
-
-   printf("Thread %d is done...\n", thr_id);
-   t_terminate();
+  t_terminate();
 }
 
 int main(void) {
 
-   int i;
-
    t_init();
 
-   t_create(sender, 1, 1);
-   t_create(catcher, 2, 1);
+   mbox_create(&mb);
+   t_create(producer, 1, 1);
+   t_create(producer, 2, 1);
+   t_create(consumer, 3, 1);
    t_yield();
+   mbox_destroy(&mb);
 
    t_shutdown();
+   printf("Done with mailbox test...\n");
 
    return 0;
 }
