@@ -1,4 +1,4 @@
-
+#include "string.h"
 typedef void sem_t;
 typedef void mbox;
 typedef void messageNode;

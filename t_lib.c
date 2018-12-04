@@ -229,7 +229,7 @@ void mbox_withdraw(mbox *mb, char *msg, int *len){
     len = 0;
   }
   else {
-    len = tmp->len;
+    len = &(tmp->len);
   }
   strcpy(msg, tmp->message);
   free(tmp->message);
@@ -276,5 +276,20 @@ void send(int tid, char *msg, int len){
 }
 
 void receive(int *tid, char *msg, int *len){
-
+  if (*tid == 0){
+    len = &(runningQueue.head->msgQueue->len);
+    strcpy(msg, runningQueue.head->msgQueue->message);
+  }
+  else {
+    tcb *tmp = readyQueue.head;
+    while (tmp != NULL){
+      if (tmp->thread_id == *tid){
+        len = &(tmp->msgQueue->len);
+        strcpy(msg, tmp->msgQueue->message);
+        tmp->msgQueue = tmp->msgQueue->next;
+        return;
+      }
+      tmp = tmp->next;
+    }
+  }
 }
