@@ -199,12 +199,13 @@ int mbox_create(mbox **mb){
 
 void mbox_deposit(mbox *mb, char *msg, int len){
   sem_wait(mb->mbox_sem);
+  // create new messageNode
   messageNode *msgNode = malloc(sizeof(messageNode));
   msgNode->message = malloc(sizeof(char) * len);
   strcpy(msgNode->message, msg);
   msgNode->sender = -1;
   msgNode->receiver = -1;
-
+  // insert at end of mailbox message queue
   if (mb->msg == NULL){
     mb->msg = msgNode;
   }
@@ -239,4 +240,41 @@ void mbox_withdraw(mbox *mb, char *msg, int *len){
 void mbox_destroy(mbox **mb){
   sem_destroy(&(*mb)->mbox_sem);
   free(*mb);
+}
+
+void enqueue(tcb *t, messageNode *msgNode){
+  if (t->msgQueue == NULL){
+    t->msgQueue  = msgNode;
+  }
+  // else move to end of queue and add there
+  else {
+    messageNode *tmp;
+    tmp = t->msgQueue;
+    while (tmp->next != NULL){
+      tmp = tmp->next;
+    }
+    tmp->next = msgNode;
+    msgNode->next = NULL;
+  }
+}
+
+void send(int tid, char *msg, int len){
+  tcb *tmp = readyQueue.head;
+  while (tmp != NULL){
+    if (tmp->thread_id == tid){
+      // create messageNode
+      messageNode *msgNode = malloc(sizeof(messageNode));
+      msgNode->message = malloc(sizeof(char) * len);
+      strcpy(msgNode->message, msg);
+      msgNode->sender = runningQueue.head->thread_id;
+      msgNode->receiver = tid;
+      // enqueue in the specified thread's msgQueue
+      enqueue(tmp, msgNode);
+    }
+    tmp = tmp->next;
+  }
+}
+
+void receive(int *tid, char *msg, int *len){
+
 }

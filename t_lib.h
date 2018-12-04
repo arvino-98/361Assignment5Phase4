@@ -14,6 +14,7 @@ struct tcb
   int thread_priority;
 	ucontext_t  *thread_context;
 	struct tcb *next;
+  struct messageNode *msgQueue; // message queue for send/receive
 };
 typedef struct tcb tcb;
 
@@ -44,3 +45,5 @@ typedef struct {
 
 int addThread_ToReadyQueue(tcb *tcb);
 int addThread_ToRunningQueue(tcb *tcb);
+
+void enqueue(tcb *t, messageNode *msgNode);

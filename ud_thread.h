@@ -19,3 +19,5 @@ int mbox_create(mbox **mb);
 void mbox_deposit(mbox *mb, char *msg, int len);
 void mbox_withdraw(mbox *mb, char *msg, int *len);
 void mbox_destroy(mbox **mb);
+void send(int tid, char *msg, int len);
+void receive(int *tid, char *msg, int *len);
